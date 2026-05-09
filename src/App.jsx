@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import Dashboard from './pages/Dashboard'
 import Voice from './pages/Voice'
 import Photos from './pages/Photos'
+import Reports from './pages/Reports'
 import { loadData, saveData, applyTheme } from './utils/helpers'
 import { exportPDF } from './utils/pdf'
 
@@ -9,6 +10,7 @@ const TABS = [
   { id: 'dashboard', label: '📊 Balance' },
   { id: 'voice',     label: '🎙️ Notas de Voz' },
   { id: 'photos',    label: '📷 Fotos / Recibos' },
+  { id: 'reports',   label: '📈 Reportes' },
 ]
 
 const THEME_LIST = [
@@ -185,6 +187,9 @@ export default function App() {
             onAdd={addPhoto}
             onDelete={delPhoto}
           />
+        )}
+        {tab === 'reports' && (
+          <Reports transactions={data.transactions} />
         )}
       </main>
     </>
