@@ -5,9 +5,20 @@ import { cur, fmtDate, today } from '../utils/helpers'
 function parseVoice(text) {
   const lower = text.toLowerCase()
 
-  // Extraer monto: primer número con posibles decimales
-  const numMatch = lower.match(/(\d+(?:[.,]\d+)?)/)
-  const amount = numMatch ? parseFloat(numMatch[1].replace(',', '.')) : null
+  // Extraer monto: soporta miles como "10,000" o "1,500,000"
+  const numMatch = lower.match(/(\d[\d,.]*\d|\d+)/)
+  let amount = null
+  if (numMatch) {
+    let raw = numMatch[1]
+    // Si la coma va seguida de exactamente 3 dígitos es separador de miles (10,000 → 10000)
+    if (/\d,\d{3}(?!\d)/.test(raw)) {
+      raw = raw.replace(/,/g, '')
+    } else {
+      raw = raw.replace(',', '.')
+    }
+    amount = parseFloat(raw)
+    if (isNaN(amount)) amount = null
+  }
 
   // Extraer descripción: texto después de preposición "de", "en", "para", "por"
   const prepMatch = lower.match(/\b(?:de|en|para|por)\s+(.+)/)
