@@ -69,6 +69,8 @@ export default function App() {
     update('transactions', data.transactions.filter(t => t.id !== id))
     update('photos', data.photos.filter(p => p.id !== id))
   }
+  const editTx = (id, updated) =>
+    update('transactions', data.transactions.map(t => t.id === id ? { ...t, ...updated } : t))
 
   // Photo handlers
   const addPhoto = (photo) => {
@@ -173,6 +175,7 @@ export default function App() {
             transactions={data.transactions}
             onAdd={addTx}
             onDelete={delTx}
+            onEdit={editTx}
           />
         )}
         {tab === 'voice' && (

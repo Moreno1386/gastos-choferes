@@ -80,7 +80,7 @@ function MicButton({ onResult, colorClass }) {
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
-function Modal({ open, title, onClose, onSave, initDesc = '', initAmount = '' }) {
+function Modal({ open, title, onClose, onSave, initDesc = '', initAmount = '', initDate = '' }) {
   const [desc, setDesc] = useState('')
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState(today())
@@ -89,9 +89,9 @@ function Modal({ open, title, onClose, onSave, initDesc = '', initAmount = '' })
     if (open) {
       setDesc(initDesc)
       setAmount(initAmount ? String(initAmount) : '')
-      setDate(today())
+      setDate(initDate || today())
     }
-  }, [open, initDesc, initAmount])
+  }, [open, initDesc, initAmount, initDate])
 
   const handleSave = () => {
     if (!desc.trim() || !amount || parseFloat(amount) <= 0) {
@@ -150,7 +150,7 @@ function SearchBar({ value, onChange, onClear }) {
 }
 
 // ── Lista de transacciones ────────────────────────────────────────────────────
-function TxList({ items, type, emptyMsg, onDelete }) {
+function TxList({ items, type, emptyMsg, onDelete, onEdit }) {
   const sorted = [...items].sort((a, b) => new Date(b.date) - new Date(a.date))
   if (sorted.length === 0) return <div className="empty">{emptyMsg}</div>
   return sorted.map(t => (
@@ -160,15 +160,17 @@ function TxList({ items, type, emptyMsg, onDelete }) {
         <div className="tx-date">{fmtDate(t.date)}</div>
       </div>
       <div className={`tx-amt ${type}`}>{type === 'inc' ? '+' : '-'}{cur(t.amount)}</div>
+      <button className="btn-edit" onClick={() => onEdit(t)} title="Editar">✏️</button>
       <button className="btn-del" onClick={() => onDelete(t.id)}>🗑</button>
     </div>
   ))
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
-export default function Dashboard({ transactions, onAdd, onDelete }) {
+export default function Dashboard({ transactions, onAdd, onDelete, onEdit }) {
   const [modal, setModal] = useState(null)
-  const [modalInit, setModalInit] = useState({ desc: '', amount: '' })
+  const [modalInit, setModalInit] = useState({ desc: '', amount: '', date: '' })
+  const [editingId, setEditingId] = useState(null)
   const [search, setSearch] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [toast, setToast] = useState(null)
@@ -185,8 +187,19 @@ export default function Dashboard({ transactions, onAdd, onDelete }) {
   }
 
   const handleSave = ({ desc, amount, date }) => {
-    onAdd({ id: Date.now(), type: modal, desc, amount, date })
+    if (editingId !== null) {
+      onEdit(editingId, { desc, amount, date })
+      setEditingId(null)
+    } else {
+      onAdd({ id: Date.now(), type: modal, desc, amount, date })
+    }
     setModal(null)
+  }
+
+  const handleEdit = (tx) => {
+    setEditingId(tx.id)
+    setModalInit({ desc: tx.desc, amount: tx.amount, date: tx.date })
+    setModal(tx.type)
   }
 
   const handleVoice = (type, text) => {
@@ -204,7 +217,8 @@ export default function Dashboard({ transactions, onAdd, onDelete }) {
   }
 
   const openModal = (type) => {
-    setModalInit({ desc: '', amount: '' })
+    setEditingId(null)
+    setModalInit({ desc: '', amount: '', date: '' })
     setModal(type)
   }
 
@@ -288,6 +302,7 @@ export default function Dashboard({ transactions, onAdd, onDelete }) {
           type="inc"
           emptyMsg={isFiltering ? 'Sin resultados para esta búsqueda' : 'No hay entradas registradas'}
           onDelete={onDelete}
+          onEdit={handleEdit}
         />
       </div>
 
@@ -308,16 +323,22 @@ export default function Dashboard({ transactions, onAdd, onDelete }) {
           type="exp"
           emptyMsg={isFiltering ? 'Sin resultados para esta búsqueda' : 'No hay gastos registrados'}
           onDelete={onDelete}
+          onEdit={handleEdit}
         />
       </div>
 
       <Modal
         open={modal !== null}
-        title={modal === 'income' ? 'Nueva Entrada' : 'Nuevo Gasto'}
-        onClose={() => setModal(null)}
+        title={
+          editingId !== null
+            ? (modal === 'income' ? 'Editar Entrada' : 'Editar Gasto')
+            : (modal === 'income' ? 'Nueva Entrada' : 'Nuevo Gasto')
+        }
+        onClose={() => { setModal(null); setEditingId(null) }}
         onSave={handleSave}
         initDesc={modalInit.desc}
         initAmount={modalInit.amount}
+        initDate={modalInit.date}
       />
 
       {/* Toast de confirmación */}

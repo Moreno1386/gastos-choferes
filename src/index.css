@@ -143,6 +143,8 @@ main { max-width: 860px; margin: 0 auto; padding: 1.25rem; }
 .tx-amt { font-weight: 800; font-size: .95rem; white-space: nowrap; }
 .tx-amt.inc { color: var(--income); }
 .tx-amt.exp { color: var(--expense); }
+.btn-edit { background: none; border: none; color: var(--muted); cursor: pointer; font-size: .9rem; padding: .2rem; flex-shrink: 0; }
+.btn-edit:hover { color: var(--primary); }
 .btn-del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: .9rem; padding: .2rem; flex-shrink: 0; }
 .btn-del:hover { color: var(--expense); }
 
